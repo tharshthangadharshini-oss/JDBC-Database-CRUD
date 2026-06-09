@@ -1,0 +1,144 @@
+1. MySQL Database Setup
+CREATE DATABASE librarydb;
+
+USE librarydb;
+
+CREATE TABLE books (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(100),
+    author VARCHAR(100)
+);
+2. JDBC CRUD Program
+import java.sql.*;
+import java.util.Scanner;
+
+public class LibraryManagement {
+
+    static final String URL = "jdbc:mysql://localhost:3306/librarydb";
+    static final String USER = "root";
+    static final String PASSWORD = "root";
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(URL, USER, PASSWORD);
+
+            while (true) {
+                System.out.println("\n===== Library Management System =====");
+                System.out.println("1. Add Book");
+                System.out.println("2. View Books");
+                System.out.println("3. Update Book");
+                System.out.println("4. Delete Book");
+                System.out.println("5. Exit");
+                System.out.print("Enter Choice: ");
+
+                int choice = sc.nextInt();
+                sc.nextLine();
+
+                switch (choice) {
+
+                    case 1:
+                        System.out.print("Enter Book Title: ");
+                        String title = sc.nextLine();
+
+                        System.out.print("Enter Author Name: ");
+                        String author = sc.nextLine();
+
+                        String insertQuery =
+                                "INSERT INTO books(title, author) VALUES(?, ?)";
+
+                        PreparedStatement ps1 =
+                                con.prepareStatement(insertQuery);
+
+                        ps1.setString(1, title);
+                        ps1.setString(2, author);
+
+                        int rows = ps1.executeUpdate();
+
+                        if (rows > 0)
+                            System.out.println("Book Added Successfully!");
+                        break;
+
+                    case 2:
+                        String selectQuery = "SELECT * FROM books";
+
+                        Statement st = con.createStatement();
+                        ResultSet rs = st.executeQuery(selectQuery);
+
+                        System.out.println("\nID\tTitle\t\tAuthor");
+
+                        while (rs.next()) {
+                            System.out.println(
+                                    rs.getInt("id") + "\t" +
+                                    rs.getString("title") + "\t\t" +
+                                    rs.getString("author"));
+                        }
+                        break;
+
+                    case 3:
+                        System.out.print("Enter Book ID to Update: ");
+                        int updateId = sc.nextInt();
+                        sc.nextLine();
+
+                        System.out.print("Enter New Title: ");
+                        String newTitle = sc.nextLine();
+
+                        System.out.print("Enter New Author: ");
+                        String newAuthor = sc.nextLine();
+
+                        String updateQuery =
+                                "UPDATE books SET title=?, author=? WHERE id=?";
+
+                        PreparedStatement ps2 =
+                                con.prepareStatement(updateQuery);
+
+                        ps2.setString(1, newTitle);
+                        ps2.setString(2, newAuthor);
+                        ps2.setInt(3, updateId);
+
+                        int updated = ps2.executeUpdate();
+
+                        if (updated > 0)
+                            System.out.println("Book Updated Successfully!");
+                        else
+                            System.out.println("Book Not Found!");
+                        break;
+
+                    case 4:
+                        System.out.print("Enter Book ID to Delete: ");
+                        int deleteId = sc.nextInt();
+
+                        String deleteQuery =
+                                "DELETE FROM books WHERE id=?";
+
+                        PreparedStatement ps3 =
+                                con.prepareStatement(deleteQuery);
+
+                        ps3.setInt(1, deleteId);
+
+                        int deleted = ps3.executeUpdate();
+
+                        if (deleted > 0)
+                            System.out.println("Book Deleted Successfully!");
+                        else
+                            System.out.println("Book Not Found!");
+                        break;
+
+                    case 5:
+                        con.close();
+                        System.out.println("Program Exited.");
+                        System.exit(0);
+
+                    default:
+                        System.out.println("Invalid Choice!");
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
