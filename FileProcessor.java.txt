@@ -1,0 +1,73 @@
+FileProcessor.java
+
+import java.io.*;
+
+class FileProcessor extends Thread {
+
+    private String fileName;
+
+    public FileProcessor(String fileName) {
+        this.fileName = fileName;
+    }
+
+    @Override
+    public void run() {
+        processFile();
+    }
+
+    private synchronized void processFile() {
+        try {
+            File file = new File(fileName);
+
+            if (!file.exists()) {
+                System.out.println(fileName + " not found.");
+                return;
+            }
+
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            int lineCount = 0;
+
+            while (br.readLine() != null) {
+                lineCount++;
+            }
+
+            br.close();
+
+            System.out.println(
+                Thread.currentThread().getName() +
+                " processed " + fileName +
+                " | Lines: " + lineCount
+            );
+
+        } catch (Exception e) {
+            System.out.println("Error processing " + fileName);
+            e.printStackTrace();
+        }
+    }
+}
+
+Main.java
+
+public class Main {
+
+    public static void main(String[] args) {
+
+        FileProcessor file1 = new FileProcessor("file1.txt");
+        FileProcessor file2 = new FileProcessor("file2.txt");
+        FileProcessor file3 = new FileProcessor("file3.txt");
+
+        file1.start();
+        file2.start();
+        file3.start();
+
+        try {
+            file1.join();
+            file2.join();
+            file3.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("All files processed successfully.");
+    }
+}
